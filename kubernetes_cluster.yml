@@ -1,0 +1,108 @@
+---
+- name: Kubernetes Cluster Setup
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Print update message
+      debug:
+        msg: "NOTE: Updating the repo from 'apt.kubernetes.io' to 'pkgs.k8s.io' since Kubernetes has moved from Google-hosted package repositories to Kubernetes community-owned software repositories, hence the below changes are being done"
+
+    - name: Ensure /etc/apt/keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Kubernetes apt key
+      shell: |
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      shell: |
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Install Kubernetes packages
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: yes
+
+    - name: Stop kubelet service
+      service:
+        name: kubelet
+        state: stopped
+      ignore_errors: yes
+
+    - name: Reset Kubernetes cluster
+      command: kubeadm reset -f
+      ignore_errors: yes
+
+    - name: Remove /etc/kubernetes directory
+      file:
+        path: /etc/kubernetes
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove /var/lib/etcd directory
+      file:
+        path: /var/lib/etcd
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove CNI binaries
+      file:
+        path: /opt/cni/bin
+        state: absent
+      ignore_errors: yes
+
+    - name: Initialize Kubernetes control plane
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+
+    - name: Download the Calico networking manifest for the Kubernetes API datastore
+      get_url:
+        url: https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+        dest: /tmp/calico.yaml
+
+    - name: Apply the calico manifest
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f /tmp/calico.yaml
+
+    # - name: Join worker nodes to the cluster
+    #   shell: "{{ hostvars['localhost']['join_command'] }}"
+    #   when: "'worker-nodes' in group_names"
+
+  post_tasks:
+    - name: Get join command
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubeadm token create --print-join-command
+      register: join_command
+      when: "'control-plane' in group_names"
+
+    - name: Save join command to hostvars
+      set_fact:
+        join_command: "{{ join_command.stdout }}"
+      when: "'control-plane' in group_names"

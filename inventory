@@ -1,0 +1,8 @@
+[all]
+localhost ansible_connection=local
+
+[control-plane]
+localhost
+
+[worker-nodes]
+localhost
