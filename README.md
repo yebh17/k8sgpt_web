@@ -60,3 +60,11 @@ This will prompt the stdin to input the API key, paste the key and press enter.
    ```bash
    k8sgpt analyze --explain
    ```
+8. **Now go back to our main project and run the k8sgpt webserver**
+
+   ```bash
+   cd ..
+   pip3 install flask
+   ./k8sgpt_web
+   ```
+Now copy the url and paste and run in the browser you will be able to see the page with all available filters from which clicking on each of them will redirect you to the respective pages showing the status of the cluster.

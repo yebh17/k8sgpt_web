@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import subprocess
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+app.static_folder = 'static'
+
+commands = {
+    'podAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=Pod',
+    'persistentVolumeClaimAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=PersistentVolumeClaim',
+    'replicaSetAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=ReplicaSet',
+    'serviceAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=Service',
+    'ingressAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=Ingress',
+    'statefulSetAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=StatefulSet',
+    'deploymentAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=Deployment',
+    'cronJobAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=CronJob',
+    'nodeAnalyzer': 'k8sgpt/k8sgpt analyze --explain --filter=Node',
+    'podDisruptionBudget': 'k8sgpt/k8sgpt analyze --explain --filter=PodDisruptionBudget',
+    'networkPolicy': 'k8sgpt/k8sgpt analyze --explain --filter=NetworkPolicy',
+    'horizontalPodAutoScaler': 'k8sgpt/k8sgpt analyze --explain --filter=HorizontalPodAutoScaler'
+}
+
+@app.route('/')
+def index():
+    return render_template('index.html', commands=commands)
+
+@app.route('/execute', methods=['POST'])
+def execute():
+    if request.method == 'POST':
+        command = commands.get(request.form['command'])
+        if command:
+            output_bytes = subprocess.check_output(command, shell=True)
+            output = output_bytes.decode('utf-8').replace('\n', '<br>')
+            return render_template('result.html', output=output)
+    
+    return 'Invalid command.'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
