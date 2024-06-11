@@ -40,3 +40,23 @@ If you do not have Go installed, please install it from [Go's official site](htt
    ./k8sgpt --help
    ``` 
 This command should display the help information for the `k8sgpt` binary, confirming that it has been built and is working as expected.
+
+5. **Generate the link to create the access key**
+
+   ```bash
+   ./k8sgpt generate
+   ```
+Now copy the link and run in the browser so that you will be able to see the icon to generate the API key. click on it and copy the API key.
+
+6. **Add the API key**
+
+   ```bash
+   k8sgpt auth add
+   ```
+This will prompt the stdin to input the API key, paste the key and press enter.
+
+7. **Test the k8sgpt with running a scan**
+
+   ```bash
+   k8sgpt analyze --explain
+   ```
