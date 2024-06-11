@@ -1,0 +1,3 @@
+[submodule "k8sgpt"]
+	path = k8sgpt
+	url = https://github.com/k8sgpt-ai/k8sgpt.git
