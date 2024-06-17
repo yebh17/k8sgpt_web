@@ -11,6 +11,7 @@ To get started with `k8sgpt_web`, follow the instructions below:
 Ensure you have the following installed on your machine:
 
 - [Git](https://git-scm.com/)
+- [Ansible] (https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
 - [Go](https://go.dev/doc/install) (version 1.16 or higher)
 
 ### Installation
@@ -24,13 +25,13 @@ Ensure you have the following installed on your machine:
 2. **Change to the project directory:**
 
    ```bash
-   cd k8sgpt_web/
+   cd k8sgpt_web/k8sgpt
    ```
 
 3. **Build the project:**
 
    ```bash
-   go build -o ../k8sgpt
+   go build -o k8sgpt
    ```
 If you do not have Go installed, please install it from [Go's official site](https://go.dev/doc/install).
 
